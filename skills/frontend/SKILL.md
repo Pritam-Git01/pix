@@ -52,28 +52,20 @@ Scan `package.json` and imports for icon libraries:
 
 ## Phase 1: Context Gathering
 
-### Chrome Setup (Two Tabs Required)
+### Chrome Setup
 
-Open two Chrome tabs side by side:
-
-**Tab 1 — Figma (Reference)**
-- Open Figma file in Chrome
-- Navigate to the exact component/frame to implement
-- Keep it zoomed to 100% for accurate pixel reference
-
-**Tab 2 — Local App (Implementation)**
-- Open `localhost:<DETECTED_PORT>`
+Open Chrome with `localhost:<DETECTED_PORT>`:
 - Navigate to the page/route where the component will live
 - This tab is used for visual comparison and interaction testing (hover, click, focus states)
+- **Zoom in** on the component area for more detailed screenshots
 
 ### User Input
 
 **Stop and Ask**:
-- "Please log in to Figma if you haven't already"
-- "Navigate to the component you want to build"
-- "Right-click the component → 'Copy link to selection'"
-- "**Zoom in** on the component in both Figma and Chrome tabs — larger screenshots capture more detail for accurate pixel comparison"
-- "Paste the Figma link here"
+- "Paste the Figma link to the component you want to build"
+- (Use 'Copy link to selection' in Figma)
+
+> **Note**: No need to open Figma in Chrome — Figma MCP handles screenshots via `get_screenshot`.
 
 ## Phase 2: The Magic Prompt (Deep Execution)
 
