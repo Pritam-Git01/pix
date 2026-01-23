@@ -50,8 +50,13 @@ Scan `package.json` and imports for icon libraries:
 
 ## Phase 1: Context Gathering
 
-1. Open Chrome tabs: `localhost:<DETECTED_PORT>` and `figma.com`
-2. **Stop and Ask**: "Environment ready. Please paste the Figma 'Link to Selection' for the component we are building."
+1. Start dev server and open Chrome with `localhost:<DETECTED_PORT>`
+2. Open Figma in Chrome tab
+3. **Stop and Ask**:
+   - "Please log in to Figma if you haven't already"
+   - "Navigate to the component you want to build"
+   - "Right-click the component → 'Copy link to selection'"
+   - "Paste the Figma link here"
 
 ## Phase 2: The Magic Prompt (Deep Execution)
 
