@@ -10,6 +10,14 @@ claude plugin install skobak/figma-mcp-chrome
 
 ## Usage
 
+Start Claude Code with Chrome integration:
+
+```bash
+claude --dangerously-skip-permissions --chrome
+```
+
+Then run:
+
 ```
 /frontend
 ```
