@@ -60,27 +60,27 @@ Scan `package.json` and imports for icon libraries:
 
 ## Phase 2: The Magic Prompt (Deep Execution)
 
-Once the link is provided, execute this EXACT sequence:
+Once the link is provided, you must execute this EXACT sequence. Do not skip details:
 
 ### 1. Hard Data Extraction (Figma API)
 * **Tokens**: Use `get_variable_defs`. Extract hex codes, corner-radius, and shadows.
 * **Typography**: Get numeric `font-weight` (e.g., 600 vs 700), `line-height`, and `letter-spacing`.
 * **Design System Sync**:
-  - If **Tailwind**: Check config file. If a Figma value is missing, **update the config**. NEVER hardcode arbitrary values like `text-[#f3f3f3]` if they should be tokens.
-  - If **CSS-in-JS**: Add tokens to the theme object/file.
-  - If **Component Library**: Map to existing theme tokens, extend theme if needed.
-  - If **CSS/SCSS**: Add CSS custom properties to the root stylesheet.
-* **Icons**: Map Figma layer names to the **project's detected icon library**. Match `stroke-width` and `size` (px) exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
+  - If **Tailwind**: Check `tailwind.config.*`. If a Figma value is missing, **update the config**. NEVER hardcode arbitrary hex values like `text-[#f3f3f3]` if they should be tokens.
+  - If **CSS-in-JS**: Add tokens to the theme object/file. NEVER use inline hex values.
+  - If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
+  - If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
+* **Icons**: Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
 
 ### 2. Implementation & "Building Brick" QA
 Implement the code using the project's existing patterns, then start the **Comparison Loop**:
-1. **Screenshot App**: Capture the rendered component in Chrome at `localhost:<DETECTED_PORT>`.
-2. **Screenshot Figma**: Use `get_image` for the high-res reference.
-3. **The "Brick" Checklist**: Compare with 1:1 scrutiny:
+1. **Screenshot App**: Take a capture of the rendered component in Chrome.
+2. **Screenshot Figma**: Use `get_image` to get the high-res reference from Figma.
+3. **The "Brick" Checklist**: Compare the following with 1:1 scrutiny:
     - **Titles**: Is the font boldness and vertical alignment identical?
-    - **Icon Shapes**: Does the icon look exactly like Figma? Check stroke thickness.
-    - **Distances**: Measure gaps/margins. If Figma says 24px and app looks like 20px, refactor.
-    - **Borders**: Verify 1px vs 2px lines and exact `border-radius` curves.
+    - **Icon Shapes**: Does the icon look exactly like the Figma version? Check the stroke thickness.
+    - **Distances**: Measure the gaps/margins. If Figma says 24px and the app looks like 20px, refactor.
+    - **Borders**: Verify 1px vs 2px lines and the exact curve of `border-radius`.
 
 ## Phase 3: Recursive Refinement
 
