@@ -88,6 +88,7 @@ Use these Figma MCP tools in sequence:
 * **Tokens**: Use `get_variable_defs` to extract hex codes, corner-radius, shadows, and typography tokens.
 * **Existing Components**: Use `get_code_connect_map` to check if any Figma components already map to code components in the codebase. Reuse existing components instead of recreating them.
 * **Typography**: Get numeric `font-weight` (e.g., 600 vs 700), `line-height`, and `letter-spacing`.
+* **Icon Colors**: Extract SVG/icon stroke and fill colors SEPARATELY from adjacent text colors. Icons often have different colors than their accompanying text. In the design context output, look for `--stroke-0`, `fill`, or inline style definitions on icon elements. Compare these explicitly against text colors.
 
 ### 2. Design System Sync
 
@@ -111,6 +112,7 @@ Implement the code using the project's existing patterns, then start the **Compa
 3. **The "Brick" Checklist**: Compare the following with 1:1 scrutiny:
     - **Titles**: Is the font boldness and vertical alignment identical?
     - **Icon Shapes**: Does the icon look exactly like the Figma version? Check the stroke thickness.
+    - **Icon Colors**: Are the icon stroke/fill colors the same as the text, or different? Check the Figma `--stroke-0` or `fill` values against the text color. Don't assume icons inherit text color.
     - **Distances**: Measure the gaps/margins. If Figma says 24px and the app looks like 20px, refactor.
     - **Borders**: Verify 1px vs 2px lines and the exact curve of `border-radius`.
 
