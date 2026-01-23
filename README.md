@@ -5,12 +5,12 @@ Build frontend on autopilot. Pixel-perfect Figma-to-code with autonomous refinem
 ## Install
 
 ```bash
-claude plugin install github:skobak/figma-mcp-chrome
+claude plugin install github:skobak/pix
 ```
 
 Or manually:
 ```bash
-git clone https://github.com/skobak/figma-mcp-chrome.git ~/.claude/plugins/pix
+git clone https://github.com/skobak/pix.git ~/.claude/plugins/pix
 ```
 
 ## Usage
