@@ -86,7 +86,33 @@ Use these Figma MCP tools in sequence:
   - Where borders/dividers separate sections
   - Whether sections extend edge-to-edge within their parent or are visually inset
 
-### 2. Design System Sync
+### 2. Exhaustive Property Verification
+
+**Rule**: Before writing code for ANY element, call `get_design_context` and verify ALL applicable properties. Never assume inheritance or defaults. Extract each value explicitly.
+
+**Text**:
+`font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `color`, `opacity`, `text-align`, `text-decoration`, `text-transform`
+
+**Container/Block**:
+`width`, `height`, `min-width`, `max-width`, `padding` (all 4 sides), `margin`, `background-color`, `border-radius`, `border-width`, `border-color`, `border-style`, `box-shadow`, `opacity`, `overflow`
+
+**Icon**:
+`size` (width/height), `fill`, `stroke`, `stroke-width`, `color` (independent from parent text)
+
+**Button/Link**:
+All text properties + all container properties + `cursor`, `hover-state`, `active-state`, `disabled-state`
+
+**Image**:
+`width`, `height`, `object-fit`, `border-radius`, `border`, `aspect-ratio`
+
+**Spacing**:
+`gap`, `row-gap`, `column-gap`, space-between elements
+
+**Layout Principle**: Avoid hardcoded sizes (`max-w-[140px]`, `w-[200px]`, etc.). With correct `font-size`, `line-height`, `padding`, and parent container width, elements should naturally render correctly. Hardcoded dimensions are a symptom of incorrect upstream layout — fix the root cause instead.
+
+**Never use approximate Tailwind classes** (like `text-zinc-500`) when exact hex values are available from MCP.
+
+### 3. Design System Sync
 
 NEVER hardcode values. Always sync to the project's design system:
 
@@ -95,11 +121,11 @@ NEVER hardcode values. Always sync to the project's design system:
 - If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
 - If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
 
-### 3. Icons
+### 4. Icons
 
 Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
 
-### 4. Implementation & "Building Brick" QA
+### 5. Implementation & "Building Brick" QA
 
 Implement the code using the project's existing patterns, then start the **Comparison Loop**:
 
@@ -120,7 +146,7 @@ Implement the code using the project's existing patterns, then start the **Compa
 If you find ANY discrepancy (even 1px):
 1. Explain what is wrong.
 2. Fix the code.
-3. **Repeat Phase 2, Step 4** (Screenshot QA).
+3. **Repeat Phase 2, Step 5** (Screenshot QA).
 
 **Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
 
