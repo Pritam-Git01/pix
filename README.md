@@ -1,25 +1,14 @@
 # figma-mcp-chrome
 
-A Claude Code skill for autonomous, pixel-perfect frontend development using Figma MCP and Chrome.
+Build frontend on autopilot. Pixel-perfect Figma-to-code with autonomous refinement.
 
-## What it does
+## Install
 
-The `/frontend` command launches an autopilot loop that:
+```bash
+git clone https://github.com/skobak/figma-mcp-chrome.git ~/.claude/skills/figma-mcp-chrome
+```
 
-1. Connects to Figma via MCP to extract design tokens, typography, and assets
-2. Implements the UI in your codebase
-3. Takes screenshots of both Figma and your local app
-4. Compares pixel-by-pixel and auto-refines until they match
-
-## Installation
-
-Copy the `.claude/skills/frontend` folder into your project's `.claude/skills/` directory.
-
-## Requirements
-
-- [Figma MCP](https://github.com/anthropics/figma-mcp) configured in Claude Code
-- Chrome with Claude extension for screenshots
-- A frontend project with Tailwind CSS (recommended)
+Or copy `.claude/skills/frontend` into your project.
 
 ## Usage
 
@@ -27,24 +16,24 @@ Copy the `.claude/skills/frontend` folder into your project's `.claude/skills/` 
 /frontend
 ```
 
-Then paste your Figma selection link when prompted.
+That's it. The skill handles everything:
 
-## How it works
-
-### Phase 0: System Verification
-Checks MCP connection, Chrome extension, and clears your dev port.
-
-### Phase 1: Context Gathering
-Opens localhost and Figma, asks for the component link.
-
-### Phase 2: Deep Execution
-- Extracts tokens via `get_variable_defs`
-- Syncs values to `tailwind.config.js`
-- Maps icons to Lucide React
+- Verifies Figma MCP connection
+- Checks Chrome extension is active
+- Detects your dev server port
+- Finds your design system (Tailwind, styled-components, Chakra, etc.)
+- Identifies your icon library
+- Starts your dev server
+- Extracts tokens from Figma
 - Implements the component
+- Screenshots both Figma and localhost
+- Compares pixel-by-pixel
+- Auto-fixes until they match
 
-### Phase 3: Recursive Refinement
-Screenshots both Figma and local app, compares every pixel, and auto-fixes discrepancies until they match.
+## Requirements
+
+- [Figma MCP](https://www.npmjs.com/package/@anthropic/figma-mcp) configured
+- Chrome with [Claude extension](https://chromewebstore.google.com/detail/claude)
 
 ## License
 
