@@ -5,10 +5,8 @@ Build frontend on autopilot. Pixel-perfect Figma-to-code with autonomous refinem
 ## Install
 
 ```bash
-git clone https://github.com/skobak/figma-mcp-chrome.git ~/.claude/skills/figma-mcp-chrome
+claude plugin install skobak/figma-mcp-chrome
 ```
-
-Or copy `.claude/skills/frontend` into your project.
 
 ## Usage
 
@@ -16,7 +14,7 @@ Or copy `.claude/skills/frontend` into your project.
 /frontend
 ```
 
-That's it. The skill handles everything:
+That's it. The plugin handles everything:
 
 - Verifies Figma MCP connection
 - Checks Chrome extension is active

@@ -1,0 +1,14 @@
+{
+  "name": "figma-mcp-chrome",
+  "version": "1.0.0",
+  "description": "Build frontend on autopilot. Pixel-perfect Figma-to-code with autonomous refinement.",
+  "author": "skobak",
+  "repository": "https://github.com/skobak/figma-mcp-chrome",
+  "skills": [
+    "skills/frontend"
+  ],
+  "requirements": {
+    "mcp": ["figma"],
+    "extensions": ["chrome"]
+  }
+}
