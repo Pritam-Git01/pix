@@ -7,5 +7,17 @@
   },
   "homepage": "https://github.com/skobak/figma-mcp-chrome",
   "repository": "https://github.com/skobak/figma-mcp-chrome",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "frontend",
+    "ui",
+    "design-to-code",
+    "pixel-perfect",
+    "mcp",
+    "chrome",
+    "tailwind",
+    "react",
+    "autonomous"
+  ]
 }

@@ -151,3 +151,27 @@ If you find ANY discrepancy (even 1px):
 **Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
 
 **ULTRA-THINK MODE ENABLED**: Take your time. Perfection over speed.
+
+## Examples
+
+**Good invocation:**
+```
+/frontend
+> Paste Figma link: https://figma.com/design/abc123/MyApp?node-id=42-100
+```
+
+**What Claude does:**
+1. Detects: Vite + Tailwind + Lucide icons
+2. Extracts: colors, typography, spacing from Figma
+3. Updates: `tailwind.config.js` with missing tokens
+4. Implements: component with exact values
+5. Screenshots: both app and Figma
+6. Compares: finds 2px gap difference
+7. Fixes: adjusts padding
+8. Repeats: until pixel-perfect match
+
+**Bad patterns to avoid:**
+- ❌ `text-[#f3f3f3]` — hardcoded hex in Tailwind
+- ❌ `w-[247px]` — magic width number
+- ❌ Assuming icon color matches text
+- ❌ Skipping screenshot comparison

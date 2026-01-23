@@ -31,7 +31,7 @@ Then run:
 
 1. **Run `/frontend`** — plugin checks your Figma MCP and Chrome extension setup, guides you if anything is missing
 
-2. **Auto-launch** — starts your dev server, opens localhost and Figma in Chrome, asks you to navigate to the component and paste the Figma link
+2. **Auto-launch** — starts your dev server, opens localhost in Chrome, asks you to paste the Figma link (Figma MCP handles screenshots directly)
 
 3. **Sit back** — watch it extract tokens, implement the component, screenshot both views, compare pixel-by-pixel, and auto-fix until perfect
 
