@@ -1,4 +1,4 @@
-# figma-mcp-chrome
+# Pix
 
 Build frontend on autopilot. Pixel-perfect Figma-to-code with autonomous refinement.
 
@@ -10,7 +10,7 @@ claude plugin install github:skobak/figma-mcp-chrome
 
 Or manually:
 ```bash
-git clone https://github.com/skobak/figma-mcp-chrome.git ~/.claude/plugins/figma-mcp-chrome
+git clone https://github.com/skobak/figma-mcp-chrome.git ~/.claude/plugins/pix
 ```
 
 ## Usage
@@ -24,12 +24,12 @@ claude --dangerously-skip-permissions --chrome
 Then run:
 
 ```
-/frontend
+/pix
 ```
 
 ## How it works
 
-1. **Run `/frontend`** — plugin checks your Figma MCP and Chrome extension setup, guides you if anything is missing
+1. **Run `/pix`** — checks your Figma MCP and Chrome extension setup, guides you if anything is missing
 
 2. **Auto-launch** — starts your dev server, opens localhost in Chrome, asks you to paste the Figma link (Figma MCP handles screenshots directly)
 

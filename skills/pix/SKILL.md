@@ -1,10 +1,10 @@
 ---
-name: frontend
+name: pix
 description: Launches an autonomous, pixel-perfect UI implementation loop using Figma MCP and Chrome.
 allowed-tools: [Bash, Read, Glob, Grep, Edit, Write]
 ---
 
-# /frontend: The Pixel-Perfect Autonomous Loop
+# /pix: The Pixel-Perfect Autonomous Loop
 
 > **Note**: This skill requires Figma MCP and Claude Chrome extension. Tool names may vary based on your MCP configuration (e.g., `figma__get_screenshot` or `mcp__figma__get_screenshot`). Run `/mcp` to see available tools.
 
@@ -156,7 +156,7 @@ If you find ANY discrepancy (even 1px):
 
 **Good invocation:**
 ```
-/frontend
+/pix
 > Paste Figma link: https://figma.com/design/abc123/MyApp?node-id=42-100
 ```
 
