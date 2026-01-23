@@ -48,7 +48,7 @@ Scan `package.json` and imports for icon libraries:
    - If not authenticated: guide user to authenticate via Figma OAuth
    - Display the authenticated user info to confirm correct account
 2. **Chrome Check**: Ensure Claude Chrome extension is active and connected.
-3. **Port Cleanup**: Using detected port, run `lsof -i :<PORT>`. Kill existing process if needed. Start dev server in background using detected package manager and script.
+3. **Dev Server**: Using detected port, run `lsof -i :<PORT>` to check if server is already running. If running, leave it alone. If not running, start dev server in background using detected package manager and script.
 
 ## Phase 1: Context Gathering
 
