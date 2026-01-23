@@ -72,6 +72,7 @@ Open two Chrome tabs side by side:
 - "Please log in to Figma if you haven't already"
 - "Navigate to the component you want to build"
 - "Right-click the component → 'Copy link to selection'"
+- "**Zoom in** on the component in both Figma and Chrome tabs — larger screenshots capture more detail for accurate pixel comparison"
 - "Paste the Figma link here"
 
 ## Phase 2: The Magic Prompt (Deep Execution)
