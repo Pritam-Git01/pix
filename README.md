@@ -36,12 +36,26 @@ Then run:
 - Finds your design system (Tailwind, styled-components, Chakra, etc.)
 - Identifies your icon library
 - Syncs Figma tokens to your config
+- Uses Code Connect to reuse existing components
 - Recursive refinement until pixel-perfect
+
+## Figma MCP Tools Used
+
+| Tool | Purpose |
+|------|---------|
+| `whoami` | Verify authentication |
+| `get_metadata` | Component structure |
+| `get_design_context` | Full design spec |
+| `get_variable_defs` | Design tokens |
+| `get_code_connect_map` | Existing component mappings |
+| `get_screenshot` | Figma reference image |
 
 ## Requirements
 
-- [Figma MCP](https://www.npmjs.com/package/@anthropic/figma-mcp) configured
-- Chrome with [Claude extension](https://chromewebstore.google.com/detail/claude)
+- **Claude Code** v2.0.73+ with `--chrome` flag
+- **Claude in Chrome** extension v1.0.36+ ([install](https://claude.com/chrome))
+- **Figma MCP** configured ([setup guide](https://help.figma.com/hc/en-us/articles/32132100833559))
+- **Paid Claude plan** (Pro, Team, or Enterprise)
 
 ## License
 

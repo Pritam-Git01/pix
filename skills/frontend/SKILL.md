@@ -1,10 +1,12 @@
 ---
 name: frontend
 description: Launches an autonomous, pixel-perfect UI implementation loop using Figma MCP and Chrome.
-allowed-tools: [Bash, Read, Glob, Grep, mcp__figma__whoami, mcp__figma__get_design_context, mcp__figma__get_image, mcp__figma__get_variable_defs, chrome_navigate, chrome_screenshot]
+allowed-tools: [Bash, Read, Glob, Grep, Edit, Write]
 ---
 
 # /frontend: The Pixel-Perfect Autonomous Loop
+
+> **Note**: This skill requires Figma MCP and Claude Chrome extension. Tool names may vary based on your MCP configuration (e.g., `figma__get_screenshot` or `mcp__figma__get_screenshot`). Run `/mcp` to see available tools.
 
 ## Phase 0: Project Discovery
 
@@ -41,11 +43,11 @@ Scan `package.json` and imports for icon libraries:
 
 ### 5. System Verification
 1. **MCP Check**: Verify Figma MCP is connected and authenticated:
-   - Call `mcp__figma__whoami` to check authentication status
+   - Call `whoami` to check authentication status
    - If not connected: alert user to configure Figma MCP
    - If not authenticated: guide user to authenticate via Figma OAuth
    - Display the authenticated user info to confirm correct account
-2. **Chrome Check**: Ensure Claude Chrome extension is active.
+2. **Chrome Check**: Ensure Claude Chrome extension is active and connected.
 3. **Port Cleanup**: Using detected port, run `lsof -i :<PORT>`. Kill existing process if needed. Start dev server in background using detected package manager and script.
 
 ## Phase 1: Context Gathering
@@ -62,20 +64,35 @@ Scan `package.json` and imports for icon libraries:
 
 Once the link is provided, you must execute this EXACT sequence. Do not skip details:
 
-### 1. Hard Data Extraction (Figma API)
-* **Tokens**: Use `get_variable_defs`. Extract hex codes, corner-radius, and shadows.
-* **Typography**: Get numeric `font-weight` (e.g., 600 vs 700), `line-height`, and `letter-spacing`.
-* **Design System Sync**:
-  - If **Tailwind**: Check `tailwind.config.*`. If a Figma value is missing, **update the config**. NEVER hardcode arbitrary hex values like `text-[#f3f3f3]` if they should be tokens.
-  - If **CSS-in-JS**: Add tokens to the theme object/file. NEVER use inline hex values.
-  - If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
-  - If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
-* **Icons**: Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
+### 1. Hard Data Extraction (Figma MCP)
 
-### 2. Implementation & "Building Brick" QA
+Use these Figma MCP tools in sequence:
+
+* **Structure**: Use `get_metadata` to understand the component hierarchy and layer structure.
+* **Design Context**: Use `get_design_context` to get the full design specification including layout, spacing, and styles.
+* **Tokens**: Use `get_variable_defs` to extract hex codes, corner-radius, shadows, and typography tokens.
+* **Existing Components**: Use `get_code_connect_map` to check if any Figma components already map to code components in the codebase. Reuse existing components instead of recreating them.
+* **Typography**: Get numeric `font-weight` (e.g., 600 vs 700), `line-height`, and `letter-spacing`.
+
+### 2. Design System Sync
+
+NEVER hardcode values. Always sync to the project's design system:
+
+- If **Tailwind**: Check `tailwind.config.*`. If a Figma value is missing, **update the config**. NEVER hardcode arbitrary hex values like `text-[#f3f3f3]` if they should be tokens.
+- If **CSS-in-JS**: Add tokens to the theme object/file. NEVER use inline hex values.
+- If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
+- If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
+
+### 3. Icons
+
+Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
+
+### 4. Implementation & "Building Brick" QA
+
 Implement the code using the project's existing patterns, then start the **Comparison Loop**:
-1. **Screenshot App**: Take a capture of the rendered component in Chrome.
-2. **Screenshot Figma**: Use `get_image` to get the high-res reference from Figma.
+
+1. **Screenshot App**: Use Chrome to capture the rendered component at `localhost:<DETECTED_PORT>`.
+2. **Screenshot Figma**: Use `get_screenshot` to get the high-res reference from Figma.
 3. **The "Brick" Checklist**: Compare the following with 1:1 scrutiny:
     - **Titles**: Is the font boldness and vertical alignment identical?
     - **Icon Shapes**: Does the icon look exactly like the Figma version? Check the stroke thickness.
@@ -87,7 +104,7 @@ Implement the code using the project's existing patterns, then start the **Compa
 If you find ANY discrepancy (even 1px):
 1. Explain what is wrong.
 2. Fix the code.
-3. **Repeat Phase 2, Step 3** (Screenshot QA).
+3. **Repeat Phase 2, Step 4** (Screenshot QA).
 
 **Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
 
