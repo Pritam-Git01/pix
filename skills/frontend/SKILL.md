@@ -1,7 +1,7 @@
 ---
 name: frontend
 description: Launches an autonomous, pixel-perfect UI implementation loop using Figma MCP and Chrome.
-allowed-tools: [Bash, Read, Glob, Grep, mcp__figma__get_design_context, mcp__figma__get_image, mcp__figma__get_variable_defs, chrome_navigate, chrome_screenshot]
+allowed-tools: [Bash, Read, Glob, Grep, mcp__figma__whoami, mcp__figma__get_design_context, mcp__figma__get_image, mcp__figma__get_variable_defs, chrome_navigate, chrome_screenshot]
 ---
 
 # /frontend: The Pixel-Perfect Autonomous Loop
@@ -40,7 +40,11 @@ Scan `package.json` and imports for icon libraries:
 - If none found, ask user which to install or use inline SVGs
 
 ### 5. System Verification
-1. **MCP Check**: Verify Figma MCP is connected. If not, alert user.
+1. **MCP Check**: Verify Figma MCP is connected and authenticated:
+   - Call `mcp__figma__whoami` to check authentication status
+   - If not connected: alert user to configure Figma MCP
+   - If not authenticated: guide user to authenticate via Figma OAuth
+   - Display the authenticated user info to confirm correct account
 2. **Chrome Check**: Ensure Claude Chrome extension is active.
 3. **Port Cleanup**: Using detected port, run `lsof -i :<PORT>`. Kill existing process if needed. Start dev server in background using detected package manager and script.
 
