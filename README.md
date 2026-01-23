@@ -14,19 +14,21 @@ claude plugin install skobak/figma-mcp-chrome
 /frontend
 ```
 
-That's it. The plugin handles everything:
+## How it works
 
-- Verifies Figma MCP connection
-- Checks Chrome extension is active
-- Detects your dev server port
+1. **Run `/frontend`** — plugin checks your Figma MCP and Chrome extension setup, guides you if anything is missing
+
+2. **Auto-launch** — starts your dev server, opens localhost and Figma in Chrome, asks you to navigate to the component and paste the Figma link
+
+3. **Sit back** — watch it extract tokens, implement the component, screenshot both views, compare pixel-by-pixel, and auto-fix until perfect
+
+## What it handles
+
+- Detects your stack (Vite, Next, etc.)
 - Finds your design system (Tailwind, styled-components, Chakra, etc.)
 - Identifies your icon library
-- Starts your dev server
-- Extracts tokens from Figma
-- Implements the component
-- Screenshots both Figma and localhost
-- Compares pixel-by-pixel
-- Auto-fixes until they match
+- Syncs Figma tokens to your config
+- Recursive refinement until pixel-perfect
 
 ## Requirements
 
