@@ -110,6 +110,8 @@ All text properties + all container properties + `cursor`, `hover-state`, `activ
 
 **Layout Principle**: Avoid hardcoded sizes (`max-w-[140px]`, `w-[200px]`, etc.). With correct `font-size`, `line-height`, `padding`, and parent container width, elements should naturally render correctly. Hardcoded dimensions are a symptom of incorrect upstream layout — fix the root cause instead.
 
+**Responsive Design**: Keep responsiveness in mind as a big plus. Even if only one breakpoint is provided in Figma, consider how the component should adapt to different screen sizes. When possible, implement both desktop and mobile-friendly styles using the project's responsive approach (Tailwind breakpoints, CSS media queries, container queries).
+
 **Never use approximate Tailwind classes** (like `text-zinc-500`) when exact hex values are available from MCP.
 
 ### 3. Design System Sync
