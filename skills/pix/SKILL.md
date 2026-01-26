@@ -127,55 +127,30 @@ NEVER hardcode values. Always sync to the project's design system:
 
 Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
 
-### 5. Implementation & Progressive Deep-Dive QA
+### 5. Implementation & "Building Brick" QA
 
-Implement the code using the project's existing patterns, then start the **Progressive Comparison Loop**.
+Implement the code using the project's existing patterns, then start the **Comparison Loop**:
 
-Compare top-down: start with the big picture, then zoom into each building block, then into the smallest details inside each block.
-
-#### Level 1 — Full Component (The Big Picture)
-Screenshot the full component in both Chrome and Figma. Compare:
-- Overall **size and shape** — does the component have the right width, height, border-radius?
-- **Layout structure** — are sections in the right order and position?
-- **Background and borders** — correct colors, shadows, dividers?
-- **Edge-to-Edge vs Inset** — does each section extend to its parent's edges or float with gaps?
-- **Background Continuity** — do backgrounds touch parent boundaries or reveal gaps?
-
-Fix any issues before going deeper.
-
-#### Level 2 — Building Blocks (Sections & Regions)
-Zoom into each distinct area inside the component (e.g., avatar area, title block, CTA section, footer). For each block compare:
-- **Position and spacing** relative to siblings — gaps, margins, alignment
-- **Titles** — font boldness, size, vertical alignment
-- **Padding Ownership** — is spacing from the parent or the child? This affects background coverage.
-- **Distances** — if Figma says 24px and app looks like 20px, refactor
-
-Fix any issues before going deeper.
-
-#### Level 3 — Atomic Elements (The Smallest Details)
-Zoom into every element inside each building block (e.g., the icon inside a button, text next to an icon). For each element compare:
-- **Icon shape** — does it match Figma exactly? Check stroke thickness.
-- **Icon color** — check `fill`/`stroke` independently from text color. Never assume inheritance.
-- **Icon size** — exact width/height in px.
-- **Icon-to-text distance** — exact gap between icon and adjacent text.
-- **Button padding** — inner spacing on all 4 sides.
-- **Border radius** — verify exact curve, 1px vs 2px lines.
-- **Font weight** — 600 vs 700 matters.
-
-Fix any issues and re-screenshot to confirm.
+1. **Screenshot App**: Use Chrome to capture the rendered component at `localhost:<DETECTED_PORT>`.
+2. **Screenshot Figma**: Use `get_screenshot` to get the high-res reference from Figma.
+3. **The "Brick" Checklist**: Compare the following with 1:1 scrutiny:
+    - **Titles**: Is the font boldness and vertical alignment identical?
+    - **Icon Shapes**: Does the icon look exactly like the Figma version? Check the stroke thickness.
+    - **Icon Colors**: Are icon colors identical to or different from adjacent text?
+    - **Distances**: Measure the gaps/margins. If Figma says 24px and the app looks like 20px, refactor.
+    - **Borders**: Verify 1px vs 2px lines and the exact curve of `border-radius`.
+    - **Edge-to-Edge vs Inset**: Does each section extend to its parent container's edges, or does it appear "floating" with visible gaps?
+    - **Background Continuity**: Does the background of a section touch its parent's boundaries, or is there a gap revealing the parent's background?
+    - **Padding Ownership**: Is the spacing between content and edges created by the parent container or the child? This affects whether backgrounds extend correctly.
 
 ## Phase 3: Recursive Refinement
-
-After completing all three levels, do a final full-component screenshot comparison.
 
 If you find ANY discrepancy (even 1px):
 1. Explain what is wrong.
 2. Fix the code.
-3. **Re-run the level where the issue was found** (don't restart from Level 1 unless layout shifted).
+3. **Repeat Phase 2, Step 5** (Screenshot QA).
 
-Keep iterating until all three levels pass.
-
-**Success Condition**: Only finished when side-by-side screenshots at every zoom level prove local app and Figma design are indistinguishable.
+**Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
 
 **ULTRA-THINK MODE ENABLED**: Take your time. Perfection over speed.
 
