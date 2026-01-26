@@ -152,6 +152,14 @@ If you find ANY discrepancy (even 1px):
 
 **Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
 
+## Phase 4: User Review
+
+Once you're satisfied with the result, **stop and ask**:
+- "Here's the final result. Are you happy with it?"
+- "If something looks off, paste a Figma 'Link to Selection' for the specific area you'd like me to focus on."
+
+If the user provides a new link, re-run Phase 2 scoped to that specific selection. This allows targeted refinement of individual building blocks without restarting the full component.
+
 **ULTRA-THINK MODE ENABLED**: Take your time. Perfection over speed.
 
 ## Examples
