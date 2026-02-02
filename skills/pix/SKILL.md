@@ -260,9 +260,9 @@ JSON.stringify({
 });
 ```
 
-Compare each value against the Figma token or design context value. "Close" is not "correct". `12px != 10px`. `#f97316 != #ff611c`.
+Compare each value against the Figma token or design context value. "Close" is not "correct". 12px is not 10px. #f97316 is not #ff611c.
 
-**CSS specificity check**: Pay special attention to icons inside wrapper components (Button, Link, etc.). Run `getComputedStyle` on the SVG element itself — parent components often override `color` via inheritance or higher-specificity selectors. If the computed color doesn't match what your Tailwind class should produce, use the `!` important modifier (e.g., `!text-white`) to force the correct value.
+**CSS specificity check**: Pay special attention to icons inside wrapper components (Button, Link, etc.). Run `getComputedStyle` on the SVG element itself — parent components often override `color` via inheritance or higher-specificity selectors. If the computed color doesn't match what your Tailwind class should produce, use the Tailwind important modifier (prefix the class with !) to force the correct value.
 
 **Step 3: Make a picky mismatch list**
 
