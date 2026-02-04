@@ -162,7 +162,7 @@ For each major section identified in the metadata tree:
 
 1. **Figma Detail**: Call `get_screenshot(sectionNodeId, fileKey)` — this crops to just that section, giving you a zoomed-in visual reference.
 
-2. **Design Context**: Call `get_design_context(sectionNodeId, fileKey)` — this returns code and styling for ONLY this section (text only, no image cost).
+2. **Design Context**: Call `get_design_context(sectionNodeId, fileKey)` — this returns code and styling for ONLY this section (text only, no image cost). **If the response is truncated** (complex section with many nested layers), use the child node IDs from `get_metadata` and call `get_design_context` on individual children instead.
 
 3. **Absorb every detail**: fonts, sizes, weights, colors, spacing, borders, shadows, icon shapes. Burn it into memory. You will NOT look at Figma again until the review phase.
 
@@ -178,6 +178,7 @@ Now implement everything — all sections, all elements — using what you memor
 - The design context output for exact properties
 - Tokens from Phase 2 Step 2 (do not re-extract)
 - Reusable components from Phase 2 Step 3
+- **Respect project rules**: Check for Claude rules files (`.claude/rules`, `CLAUDE.md`, project instruction files) and any design system rules in the repo. Follow the project's established patterns for component structure, file placement, naming conventions, and styling approach. The Figma MCP output is a design representation — translate it into your project's conventions, don't paste it verbatim.
 
 **Zero screenshots during coding.** You studied the design. You know every pixel. Code like you're working in the dark — every detail already committed to memory.
 
@@ -276,7 +277,7 @@ Implement all fixes in code. Do not take screenshots between individual fixes �
 
 Take another Chrome screenshot. Compare again. If new issues are visible or the numerical audit still shows mismatches, make another list and fix again.
 
-**Exit condition**: The Chrome screenshot matches the Figma reference AND the numerical audit shows zero mismatches. Only then move on.
+**Exit condition**: Before declaring pixel-perfect, do one final side-by-side color check. Retake `get_screenshot` on the Figma root node and place it next to your latest Chrome screenshot. Compare colors directly — backgrounds, text, borders, shadows. If opacity/gradient layering caused the raw design context values to differ from the actual rendered Figma colors, this is where you catch it. Only move on when both screenshots match AND the numerical audit shows zero mismatches.
 
 ### Icon & Shape Verification
 
@@ -352,8 +353,9 @@ If the user provides a new link, re-run Phases 2-4 scoped to that specific selec
 7. Fix all 4 numerical mismatches. Icon check: `get_screenshot` on Figma icon node (image 5) — wrong icon, swap it.
 8. **Refinement loop, round 2**: Chrome screenshot (image 6) + `getComputedStyle` audit → 1 remaining spacing issue
 9. Fix spacing.
-10. **Refinement loop, round 3**: Chrome screenshot (image 7) + audit → zero mismatches. Pixel-perfect.
-11. Done. Total: 7 images
+10. **Refinement loop, round 3**: Chrome screenshot (image 7) + audit → zero mismatches.
+11. **Final color check**: Retake Figma overview `get_screenshot` (image 8) side-by-side with Chrome → colors match. Pixel-perfect.
+12. Done. Total: 8 images
 
 **Bad patterns to avoid:**
 - Screenshotting every element individually (budget killer)
