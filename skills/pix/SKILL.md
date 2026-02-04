@@ -111,7 +111,11 @@ Call `get_code_connect_map(nodeId, fileKey)`. This tells you which Figma nodes a
 {"45:10": {"codeConnectSrc": "src/components/Logo.tsx", "codeConnectName": "Logo"}}
 ```
 
-Any matched component should be **reused**, not reimplemented.
+For matched components, follow this priority:
+1. **Reuse as-is** — if the existing component covers the Figma design exactly
+2. **Extend minimally** — add a prop or variant if the component is close but not exact
+3. **Compose** — combine existing components to build the new element
+4. **Create new** — only if nothing existing fits at all
 
 ### Step 4: Visual Overview (Image 1 of your budget)
 
@@ -159,6 +163,8 @@ Now implement everything — all sections, all elements — using what you memor
 - Reusable components from Phase 2 Step 3
 - **Respect project rules**: Check for Claude rules files (`.claude/rules`, `CLAUDE.md`, project instruction files) and any design system rules in the repo. Follow the project's established patterns for component structure, file placement, naming conventions, and styling approach. The Figma MCP output is a design representation — translate it into your project's conventions, don't paste it verbatim.
 
+**Frontend only.** Only modify frontend code (components, styles, assets). Do not touch backend, API routes, database, or server logic unless the user explicitly asks. If the design requires data that doesn't exist yet, use mock/placeholder data and note what API the backend team would need to provide.
+
 **Zero screenshots during coding.** You studied the design. You know every pixel. Code like you're working in the dark — every detail already committed to memory.
 
 **Cheat move**: If you genuinely can't recall a specific detail (e.g., exact icon shape, a nested layout you didn't drill into, a subtle gradient), take ONE targeted `get_screenshot` on that specific Figma node. Then go back to coding. Don't use this as an excuse to screenshot everything — it's a surgical peek, not a second study phase.
@@ -172,11 +178,13 @@ NEVER hardcode values. Always sync to the project's design system:
 - If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
 - If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
 
-### Step 5: Icons
+### Step 5: Icons & Assets
 
-Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
+**Icons**: Always try to find a match in the project's existing icon library first. Search by name, then by visual shape. Match `stroke-width` and `size` (px) to the design exactly.
 
 **Fallback**: If the Figma layer name doesn't map to an obvious icon library match, call `get_screenshot(iconNodeId, fileKey)` on that specific icon node and identify it visually. Match by shape, not by name.
+
+**If no match exists** in the icon library, or if the element is an illustration/image rather than an icon — download it from the Figma MCP assets endpoint and save it to the project's public/static assets folder (e.g., `public/`, `static/`, `assets/`). Do not create inline SVG blobs for complex illustrations. Do not import new icon packages without asking the user.
 
 ### Property Checklist
 
