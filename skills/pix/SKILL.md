@@ -6,182 +6,304 @@ allowed-tools: [Bash, Read, Glob, Grep, Edit, Write]
 
 # /pix: The Pixel-Perfect Autonomous Loop
 
-> **Note**: This skill requires Figma MCP and Claude Chrome extension. Tool names may vary based on your MCP configuration (e.g., `figma__get_screenshot` or `mcp__figma__get_screenshot`). Run `/mcp` to see available tools.
+User provides a Figma link. You implement it pixel-perfect. That's it.
 
-## Phase 0: Project Discovery
+> Tool names may vary based on your MCP configuration (e.g., `figma__get_screenshot` or `mcp__figma__get_screenshot`). Run `/mcp` to see available tools.
 
-Before anything else, analyze the project to understand its stack:
+## Resource Strategy
 
-### 1. Package Manager Detection
-Check which lockfile exists: `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun).
-Use the corresponding command for all package operations.
+### Tool Costs
 
-### 2. Dev Server & Port Detection
-- Read `package.json` scripts to find the dev command
-- Check for port configuration in: `vite.config.*`, `next.config.*`, `nuxt.config.*`, `webpack.config.*`, `.env*`, or the dev script itself
-- Common patterns: `--port`, `-p`, `PORT=`, `server.port`
-- Default fallback order: 5173 (Vite), 3000 (Next/CRA), 8080 (Vue CLI)
+| Tool | Cost | Use For |
+|------|------|---------|
+| `get_metadata` | **Cheap** | Node tree with child IDs, positions, sizes. No styling. |
+| `get_variable_defs` | **Cheap** | All design tokens (colors, spacing, radii) as name→value. |
+| `get_code_connect_map` | **Cheap** | Check which Figma nodes map to existing code components. |
+| `get_screenshot` | **Medium** | Visual image of a specific node. Target a `nodeId` to crop/zoom. |
+| `get_design_context` | **Expensive** | Full code + styling + assets. NEVER call on a large parent — call on individual sections. |
 
-### 3. Design System Detection
-Scan `package.json` dependencies for styling approach:
-- **Tailwind**: `tailwindcss` → config in `tailwind.config.*`
-- **CSS-in-JS**: `styled-components`, `@emotion/*`, `stitches`
-- **Component Libraries**: `@chakra-ui/*`, `@mui/*`, `@mantine/*`, `antd`, `@radix-ui/*`
-- **CSS Modules**: check for `*.module.css` files
-- **Vanilla CSS/SCSS**: check for global stylesheets
+**Core rule**: Cheap calls first to build a map, then expensive calls only on the smallest necessary nodes.
 
-### 4. Icon Library Detection
-Scan `package.json` and imports for icon libraries:
-- `lucide-react` → Lucide
-- `@heroicons/react` → Heroicons
-- `react-icons` → React Icons (multi-library)
-- `@radix-ui/react-icons` → Radix Icons
-- `@fortawesome/*` → FontAwesome
-- `@phosphor-icons/react` → Phosphor
-- `@tabler/icons-react` → Tabler Icons
-- If none found, ask user which to install or use inline SVGs
+### Image Budget
 
-### 5. System Verification
-1. **MCP Check**: Verify Figma MCP is connected and authenticated:
-   - Call `whoami` to check authentication status
-   - If not connected: alert user to configure Figma MCP
-   - If not authenticated: guide user to authenticate via Figma OAuth
-   - Display the authenticated user info to confirm correct account
-2. **Chrome Check**: Ensure Claude Chrome extension is active and connected.
-3. **Dev Server**: Using detected port, run `lsof -i :<PORT>` to check if server is already running. If running, leave it alone. If not running, start dev server in background using detected package manager and script.
+Claude API limits images to 2000px per dimension when >20 images are in a conversation. Old images cannot be individually removed.
 
-## Phase 1: Context Gathering
+- **~20 screenshots per conversation** before the resolution limit kicks in
+- **3-image working set**: Figma layout (overview), Figma detail (current section), Chrome state (rendered result)
+- **Never re-screenshot a static Figma node** — designs don't change mid-session
+- **Use `getComputedStyle` for numerical properties** — zero image cost
+- **Recovery**: `/compact` drops old images from context (see Recovery section)
 
-### Chrome Setup
+---
 
-Open Chrome with `localhost:<DETECTED_PORT>`:
-- Navigate to the page/route where the component will live
-- This tab is used for visual comparison and interaction testing (hover, click, focus states)
-- **Zoom in** on the component area for more detailed screenshots
+## Phase 1: Reconnaissance
 
-### User Input
+When the user provides a Figma link, extract `fileKey` and `nodeId` from the URL and immediately start working. If any MCP call or Chrome interaction fails, run the [Doctor Check](#doctor-check) to diagnose and fix, then resume.
 
-**Stop and Ask**:
-- "Paste the Figma link to the component you want to build"
-- (Use 'Copy link to selection' in Figma)
+### Step 1: Get the Node Tree
 
-> **Note**: No need to open Figma in Chrome — Figma MCP handles screenshots via `get_screenshot`.
+Call `get_metadata(nodeId, fileKey)`:
 
-## Phase 2: The Magic Prompt (Deep Execution)
+```xml
+<Frame id="45:1" name="Header" type="FRAME" x="0" y="0" width="1440" height="80">
+  <Component id="45:10" name="Logo" x="20" y="16" width="120" height="48"/>
+  <Frame id="45:15" name="NavLinks" x="400" y="20" width="600" height="40">
+    <Text id="45:16" name="Home" x="0" y="0" width="60" height="40"/>
+  </Frame>
+</Frame>
+```
 
-Once the link is provided, you must execute this EXACT sequence. Do not skip details:
+Build a **mental map**:
+- Identify every major section and note each `nodeId`
+- Note positions and sizes to understand the layout grid
+- Identify components vs frames vs text vs icons
 
-### 1. Hard Data Extraction (Figma MCP)
+### Step 2: Extract All Design Tokens (Once)
 
-Use these Figma MCP tools in sequence:
+Call `get_variable_defs(nodeId, fileKey)`. Save the result — do NOT call this again.
 
-* **Structure**: Use `get_metadata` to understand the component hierarchy and layer structure.
-* **Design Context**: Use `get_design_context` to get the full design specification including layout, spacing, and styles.
-* **Tokens**: Use `get_variable_defs` to extract hex codes, corner-radius, shadows, and typography tokens.
-* **Existing Components**: Use `get_code_connect_map` to check if any Figma components already map to code components in the codebase. Reuse existing components instead of recreating them.
-* **Typography**: Get numeric `font-weight` (e.g., 600 vs 700), `line-height`, and `letter-spacing`.
-* **Icon Colors**: Extract icon stroke/fill colors separately from text colors. Check `--stroke-0`, `fill`, or style definitions. Never assume icons inherit text color.
-* **Container Layout Analysis**: Before implementing, identify:
-  - Which elements share a common background vs have distinct backgrounds
-  - Where borders/dividers separate sections
-  - Whether sections extend edge-to-edge within their parent or are visually inset
+### Step 3: Check Existing Components
 
-### 2. Exhaustive Property Verification
+Call `get_code_connect_map(nodeId, fileKey)`. For matched components, follow this priority:
+1. **Reuse as-is** — if it covers the Figma design exactly
+2. **Extend minimally** — add a prop or variant if close but not exact
+3. **Compose** — combine existing components
+4. **Create new** — only if nothing existing fits
 
-**Rule**: Before writing code for ANY element, call `get_design_context` and verify ALL applicable properties. Never assume inheritance or defaults. Extract each value explicitly.
+### Step 4: Visual Overview
 
-**Text**:
-`font-family`, `font-size`, `font-weight`, `line-height`, `letter-spacing`, `color`, `opacity`, `text-align`, `text-decoration`, `text-transform`
+Call `get_screenshot(nodeId, fileKey)` on the root selection. This is Image 1 of your budget — your layout reference. Do NOT retake it.
 
-**Container/Block**:
-`width`, `height`, `min-width`, `max-width`, `padding` (all 4 sides), `margin`, `background-color`, `border-radius`, `border-width`, `border-color`, `border-style`, `box-shadow`, `opacity`, `overflow`
+**At this point you have NOT called `get_design_context` at all.** You have a complete structural map, all tokens, reusable component info, and a visual reference — all from cheap calls.
 
-**Icon**:
-`size` (width/height), `fill`, `stroke`, `stroke-width`, `color` (independent from parent text)
+---
 
-**Button/Link**:
-All text properties + all container properties + `cursor`, `hover-state`, `active-state`, `disabled-state`
+## Phase 2: Study & Implement (Code in the Dark)
 
-**Image**:
-`width`, `height`, `object-fit`, `border-radius`, `border`, `aspect-ratio`
+Study the design deeply, memorize every detail, then code from memory.
 
-**Spacing**:
-`gap`, `row-gap`, `column-gap`, space-between elements
+### Step 1: Layout Shell
 
-**Layout Principle**: Avoid hardcoded sizes (`max-w-[140px]`, `w-[200px]`, etc.). With correct `font-size`, `line-height`, `padding`, and parent container width, elements should naturally render correctly. Hardcoded dimensions are a symptom of incorrect upstream layout — fix the root cause instead.
+Using the metadata tree, implement the outer layout:
+- Container dimensions and positioning (flex, grid)
+- Major section placement
+- Background colors from tokens
+- Borders and dividers
 
-**Responsive Design**: Keep responsiveness in mind as a big plus. Even if only one breakpoint is provided in Figma, consider how the component should adapt to different screen sizes. When possible, implement both desktop and mobile-friendly styles using the project's responsive approach (Tailwind breakpoints, CSS media queries, container queries).
+The metadata + visual overview are usually sufficient. Only call `get_design_context` if you need specific properties you can't infer.
 
-**Never use approximate Tailwind classes** (like `text-zinc-500`) when exact hex values are available from MCP.
+### Step 2: Study Every Section
 
-### 3. Design System Sync
+For each major section:
 
-NEVER hardcode values. Always sync to the project's design system:
+1. **Figma Detail**: `get_screenshot(sectionNodeId, fileKey)` — zoomed-in visual reference.
 
-- If **Tailwind**: Check `tailwind.config.*`. If a Figma value is missing, **update the config**. NEVER hardcode arbitrary hex values like `text-[#f3f3f3]` if they should be tokens.
-- If **CSS-in-JS**: Add tokens to the theme object/file. NEVER use inline hex values.
-- If **Component Library**: Map to existing theme tokens, extend theme if needed. NEVER bypass the theme.
-- If **CSS/SCSS**: Add CSS custom properties to `:root`. NEVER scatter magic values.
+2. **Design Context**: `get_design_context(sectionNodeId, fileKey)` — text only, no image cost. If truncated, use child node IDs from `get_metadata` and fetch children individually.
 
-### 4. Icons
+3. **Absorb every detail**: fonts, sizes, weights, colors, spacing, borders, shadows, icon shapes. Burn it into memory.
 
-Map Figma layer names to the **project's detected icon library**. Match the `stroke-width` and `size` (px) to the design exactly. If no icon library exists, ask user preference or use inline SVG from Figma.
+4. **Color sanity check**: Compare `get_design_context` colors against the Figma screenshot. If the screenshot reveals opacity layering, overlapping fills, or gradients — the raw token values will be wrong. Use the visual truth, not the raw token.
 
-### 5. Implementation & "Building Brick" QA
+**No Chrome screenshots during this phase.** You are studying, not checking.
 
-Implement the code using the project's existing patterns, then start the **Comparison Loop**:
+**Key rule**: NEVER call `get_design_context` on the root selection. Always target the smallest meaningful node.
 
-1. **Screenshot App**: Use Chrome to capture the rendered component at `localhost:<DETECTED_PORT>`.
-2. **Screenshot Figma**: Use `get_screenshot` to get the high-res reference from Figma.
-3. **The "Brick" Checklist**: Compare the following with 1:1 scrutiny:
-    - **Titles**: Is the font boldness and vertical alignment identical?
-    - **Icon Shapes**: Does the icon look exactly like the Figma version? Check the stroke thickness.
-    - **Icon Colors**: Are icon colors identical to or different from adjacent text?
-    - **Distances**: Measure the gaps/margins. If Figma says 24px and the app looks like 20px, refactor.
-    - **Borders**: Verify 1px vs 2px lines and the exact curve of `border-radius`.
-    - **Edge-to-Edge vs Inset**: Does each section extend to its parent container's edges, or does it appear "floating" with visible gaps?
-    - **Background Continuity**: Does the background of a section touch its parent's boundaries, or is there a gap revealing the parent's background?
-    - **Padding Ownership**: Is the spacing between content and edges created by the parent container or the child? This affects whether backgrounds extend correctly.
+### Step 3: Code from Memory
 
-## Phase 3: Recursive Refinement
+Implement everything using what you memorized:
+- Design context output for exact properties
+- Tokens from Phase 1 (do not re-extract)
+- Reusable components from Phase 1
+- **Respect project rules**: Check for `.claude/rules`, `CLAUDE.md`, and project instruction files. Follow established patterns for component structure, file placement, naming, and styling. Figma MCP output is a design representation — translate it into your project's conventions, don't paste it verbatim.
 
-If you find ANY discrepancy (even 1px):
-1. Explain what is wrong.
-2. Fix the code.
-3. **Repeat Phase 2, Step 5** (Screenshot QA).
+**Frontend only.** Don't touch backend, API routes, or database unless the user explicitly asks. Use mock/placeholder data if APIs don't exist yet.
 
-**Success Condition**: Only finished when side-by-side screenshots prove local app and Figma design are indistinguishable.
+**Minimize screenshots during coding.** You studied the design — use what you memorized. But if you're missing crucial data for a specific element (exact icon shape, a nested layout you didn't drill into, a subtle gradient), take a targeted `get_screenshot` on that Figma node rather than guessing. Getting it right the first time is cheaper than a refinement round.
+
+### Step 4: Design System Sync
+
+NEVER hardcode values. Sync to the project's design system:
+
+- **Tailwind**: Update `tailwind.config.*` if a token is missing. Never `text-[#f3f3f3]`.
+- **CSS-in-JS**: Add tokens to the theme object. Never inline hex.
+- **Component Library**: Map to existing theme tokens. Never bypass the theme.
+- **CSS/SCSS**: Add custom properties to `:root`. Never scatter magic values.
+
+### Step 5: Icons & Assets
+
+**Icons**: Find a match in the project's existing icon library first — by name, then by visual shape. Match `stroke-width` and `size` exactly.
+
+**Fallback**: If the layer name doesn't map, `get_screenshot(iconNodeId)` and identify visually. Match by shape, not name.
+
+**Images/illustrations**: Download from the Figma MCP assets endpoint and save to the project's public/static folder. Don't create inline SVG blobs for complex illustrations. Don't import new icon packages without asking.
+
+### Property Checklist
+
+Before writing code for ANY element, verify ALL applicable properties:
+
+- **Text**: font-family, font-size, font-weight, line-height, letter-spacing, color, opacity, text-align, text-decoration, text-transform
+- **Container**: width, height, min/max-width, padding (all 4), margin, background-color, border-radius, border-width/color/style, box-shadow, opacity, overflow
+- **Icon**: size, fill, stroke, stroke-width, color (independent from parent text)
+- **Button/Link**: All text + container props + cursor, hover/active/disabled states
+- **Image**: width, height, object-fit, border-radius, border, aspect-ratio
+- **Spacing**: gap, row-gap, column-gap
+
+**Layout Principle**: Avoid hardcoded sizes. With correct font-size, line-height, padding, and parent width, elements render correctly. Hardcoded dimensions are a symptom of wrong upstream layout.
+
+**Responsive**: Consider how the component adapts to different screen sizes. Use the project's responsive approach (Tailwind breakpoints, media queries, container queries).
+
+**Never use approximate Tailwind classes** (like `text-zinc-500`) when exact hex values are available from tokens.
+
+---
+
+## Phase 3: Refinement Loop
+
+You think you're done. Now prove it. Keep cycling until the result is perfect.
+
+### The Loop
+
+**Step 1: Chrome screenshot (1 image)**
+
+First look at what you built. Compare against Figma screenshots in context. Be extremely picky:
+- Visual alignment issues
+- Missing elements or wrong proportions
+- Layout shifts, spacing that looks off
+- Wrong icon shapes
+- Color or weight mismatches
+- **Color comparison**: Sample dominant colors from Figma vs Chrome. Flag anything that looks off — opacity/layering can cause perceived differences even when hex values match.
+
+**Step 2: Numerical audit (zero images)**
+
+Run `getComputedStyle` on every element and compare against Figma values:
+
+```js
+const el = document.querySelector('.target-element');
+const s = getComputedStyle(el);
+JSON.stringify({
+  padding: s.padding, margin: s.margin, gap: s.gap,
+  backgroundColor: s.backgroundColor, color: s.color,
+  fontSize: s.fontSize, fontWeight: s.fontWeight,
+  lineHeight: s.lineHeight, letterSpacing: s.letterSpacing,
+  borderRadius: s.borderRadius, borderWidth: s.borderWidth,
+  borderColor: s.borderColor, boxShadow: s.boxShadow
+});
+```
+
+12px is not 10px. #f97316 is not #ff611c.
+
+**CSS specificity check**: Icons inside wrapper components (Button, Link) often get wrong colors from parent overrides. Run `getComputedStyle` on the SVG itself. If the computed color doesn't match, use the Tailwind important modifier (prefix with !) to force it.
+
+**Step 3: Picky mismatch list**
+
+Combine visual + numerical issues into one list. No issue is too small. 2px off? List it.
+
+**Step 4: Fix everything**
+
+Batch all fixes. No screenshots between individual fixes.
+
+**Step 5: Repeat from Step 1**
+
+**Exit condition**: Retake `get_screenshot` on the Figma root node. Place side-by-side with your latest Chrome screenshot. Compare colors directly. Only move on when both screenshots match AND numerical audit shows zero mismatches.
+
+### Icon & Shape Verification
+
+If an icon looks wrong during any loop iteration:
+- `get_screenshot(iconNodeId, fileKey)` on the Figma icon
+- Screenshot Chrome icon at 3x zoom
+- Compare the SILHOUETTE — stroke count, shape, proportions
+
+Common mismatches:
+- "filter" → often lines-with-circles, NOT a funnel
+- "calendar" → many variants (with/without dots)
+- "mail" → open vs closed envelope
+
+If it doesn't match: try another icon from the library, or use the Figma SVG inline.
+
+### Anti-Pattern: "Looks Good Enough"
+
+This ALWAYS misses: 2-4px spacing differences, wrong icon variant, slightly wrong color, missing shadow, font weight mismatch.
+
+**RULE**: Not done until zero visual mismatches AND zero numerical mismatches.
+
+---
+
+## Recovery: Compact & Resume
+
+If you hit the image limit (or proactively after ~15 screenshots):
+
+1. **Run `/compact`** — summarizes conversation, drops old images. Notes and progress are preserved.
+2. **Retake 3 reference images**: Figma overview, Figma detail (current section), Chrome state.
+3. **Continue the refinement loop** — you still know everything from the compacted history. ~17 more image slots available.
+
+Repeatable: compact → retake 3 → continue → compact again if needed.
+
+---
 
 ## Phase 4: User Review
 
-Once you're satisfied with the result, **stop and ask**:
+**Stop and ask**:
 - "Here's the final result. Are you happy with it?"
-- "If something looks off, paste a Figma 'Link to Selection' for the specific area you'd like me to focus on."
+- "If something looks off, paste a Figma 'Link to Selection' for the specific area."
 
-If the user provides a new link, re-run Phase 2 scoped to that specific selection. This allows targeted refinement of individual building blocks without restarting the full component.
+If the user provides a new link, re-run Phases 1-3 scoped to that selection.
 
-**ULTRA-THINK MODE ENABLED**: Take your time. Perfection over speed.
+---
+
+## Doctor Check
+
+Run this ONLY when something fails. Not at startup.
+
+**Figma MCP not working?**
+- Call `whoami` to check authentication
+- Not connected → alert user to configure Figma MCP
+- Not authenticated → guide through Figma OAuth
+
+**Chrome not responding?**
+- Ensure Claude Chrome extension is active
+- Navigate to the correct localhost page
+
+**Dev server not running?**
+- Check lockfile: `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun)
+- Read `package.json` for dev command and port
+- Default ports: 5173 (Vite), 3000 (Next/CRA), 8080 (Vue CLI)
+- `lsof -i :<PORT>` — if not running, start in background
+
+**Unknown design system or icon library?**
+- Scan `package.json`: `tailwindcss`, `styled-components`, `@emotion/*`, `@chakra-ui/*`, `@mui/*`, `@mantine/*`
+- Icon libraries: `lucide-react`, `@heroicons/react`, `react-icons`, `@radix-ui/react-icons`, `@fortawesome/*`, `@phosphor-icons/react`, `@tabler/icons-react`
+
+---
 
 ## Examples
 
-**Good invocation:**
+**Invocation:**
 ```
 /pix
 > Paste Figma link: https://figma.com/design/abc123/MyApp?node-id=42-100
 ```
 
-**What Claude does:**
-1. Detects: Vite + Tailwind + Lucide icons
-2. Extracts: colors, typography, spacing from Figma
-3. Updates: `tailwind.config.js` with missing tokens
-4. Implements: component with exact values
-5. Screenshots: both app and Figma
-6. Compares: finds 2px gap difference
-7. Fixes: adjusts padding
-8. Repeats: until pixel-perfect match
+**What happens:**
+1. Recon: `get_metadata` + `get_variable_defs` + `get_code_connect_map` (0 images)
+2. Figma overview: `get_screenshot` on root (image 1)
+3. Study section 1: `get_screenshot` (image 2) + `get_design_context` (text). Memorize.
+4. Study section 2: `get_screenshot` (image 3) + `get_design_context` (text). Memorize.
+5. Code everything from memory (0 images)
+6. **Loop round 1**: Chrome screenshot (image 4) + audit → 4 mismatches + 1 bad icon
+7. Fix mismatches. Icon check: `get_screenshot` on Figma icon (image 5) — swap it.
+8. **Loop round 2**: Chrome screenshot (image 6) + audit → 1 spacing issue
+9. Fix spacing.
+10. **Loop round 3**: Chrome screenshot (image 7) + audit → zero mismatches.
+11. **Final check**: Retake Figma `get_screenshot` (image 8) side-by-side with Chrome → match.
+12. Done. Total: 8 images.
 
-**Bad patterns to avoid:**
-- ❌ `text-[#f3f3f3]` — hardcoded hex in Tailwind
-- ❌ `w-[247px]` — magic width number
-- ❌ Assuming icon color matches text
-- ❌ Skipping screenshot comparison
+**Bad patterns:**
+- Screenshotting every element individually (budget killer)
+- Re-screenshotting the same Figma node (it's static)
+- Chrome screenshots after every small CSS tweak
+- Using screenshots to verify what `getComputedStyle` gives for free
+- Not running `/compact` when approaching image limit
+- `get_design_context` on root (token waste)
+- `get_variable_defs` more than once (redundant)
+- Hardcoded hex in Tailwind (`text-[#f3f3f3]`)
+- Magic width numbers (`w-[247px]`)
+- Saying "looks close" without numerical verification
