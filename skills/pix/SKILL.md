@@ -35,63 +35,42 @@ Claude API limits images to 2000px per dimension when >20 images are in a conver
 - **Use `getComputedStyle` for all numerical properties** — zero image cost for verifying spacing, colors, fonts, sizes
 - **Recovery**: `/compact` drops all old images from context (see Recovery section below)
 
-## Phase 0: Project Discovery
+## Phase 0: Get Started
 
-Before anything else, analyze the project to understand its stack:
+**Stop and Ask**: "Paste the Figma link to the component you want to build" (Use 'Copy link to selection' in Figma)
 
-### 1. Package Manager Detection
-Check which lockfile exists: `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun).
-Use the corresponding command for all package operations.
-
-### 2. Dev Server & Port Detection
-- Read `package.json` scripts to find the dev command
-- Check for port configuration in: `vite.config.*`, `next.config.*`, `nuxt.config.*`, `webpack.config.*`, `.env*`, or the dev script itself
-- Common patterns: `--port`, `-p`, `PORT=`, `server.port`
-- Default fallback order: 5173 (Vite), 3000 (Next/CRA), 8080 (Vue CLI)
-
-### 3. Design System Detection
-Scan `package.json` dependencies for styling approach:
-- **Tailwind**: `tailwindcss` → config in `tailwind.config.*`
-- **CSS-in-JS**: `styled-components`, `@emotion/*`, `stitches`
-- **Component Libraries**: `@chakra-ui/*`, `@mui/*`, `@mantine/*`, `antd`, `@radix-ui/*`
-- **CSS Modules**: check for `*.module.css` files
-- **Vanilla CSS/SCSS**: check for global stylesheets
-
-### 4. Icon Library Detection
-Scan `package.json` and imports for icon libraries:
-- `lucide-react` → Lucide
-- `@heroicons/react` → Heroicons
-- `react-icons` → React Icons (multi-library)
-- `@radix-ui/react-icons` → Radix Icons
-- `@fortawesome/*` → FontAwesome
-- `@phosphor-icons/react` → Phosphor
-- `@tabler/icons-react` → Tabler Icons
-- If none found, ask user which to install or use inline SVGs
-
-### 5. System Verification
-1. **MCP Check**: Verify Figma MCP is connected and authenticated:
-   - Call `whoami` to check authentication status
-   - If not connected: alert user to configure Figma MCP
-   - If not authenticated: guide user to authenticate via Figma OAuth
-   - Display the authenticated user info to confirm correct account
-2. **Chrome Check**: Ensure Claude Chrome extension is active and connected.
-3. **Dev Server**: Using detected port, run `lsof -i :<PORT>` to check if server is already running. If running, leave it alone. If not running, start dev server in background using detected package manager and script.
-
-## Phase 1: Context Gathering
-
-### Chrome Setup
-
-Open Chrome with `localhost:<DETECTED_PORT>`:
-- Navigate to the page/route where the component will live
-- This tab is used for visual comparison and interaction testing (hover, click, focus states)
-
-### User Input
-
-**Stop and Ask**:
-- "Paste the Figma link to the component you want to build"
-- (Use 'Copy link to selection' in Figma)
+Assume everything is already set up — dev server running, Figma MCP connected, Chrome extension active. Just start working. If something fails, run the Doctor Check.
 
 > **Note**: No need to open Figma in Chrome — Figma MCP handles screenshots via `get_screenshot`.
+
+### Doctor Check (run only on failure)
+
+If a Figma MCP call fails, a package install fails, or Chrome isn't responding — diagnose the specific problem:
+
+**Figma MCP not working?**
+- Call `whoami` to check authentication
+- If not connected: alert user to configure Figma MCP
+- If not authenticated: guide user through Figma OAuth
+
+**Chrome not responding?**
+- Ensure Claude Chrome extension is active and connected
+- Navigate to the page/route where the component will live
+
+**Dev server not running?**
+- Check which lockfile exists: `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun)
+- Read `package.json` scripts to find the dev command and port
+- Check for port config in: `vite.config.*`, `next.config.*`, `.env*`, or the dev script
+- Default ports: 5173 (Vite), 3000 (Next/CRA), 8080 (Vue CLI)
+- Run `lsof -i :<PORT>` — if not running, start it in background
+
+**Don't know the design system or icon library?**
+- Scan `package.json` dependencies:
+  - **Tailwind**: `tailwindcss` → config in `tailwind.config.*`
+  - **CSS-in-JS**: `styled-components`, `@emotion/*`, `stitches`
+  - **Component Libraries**: `@chakra-ui/*`, `@mui/*`, `@mantine/*`, `antd`, `@radix-ui/*`
+  - **CSS Modules**: `*.module.css` files
+- Icon libraries: `lucide-react`, `@heroicons/react`, `react-icons`, `@radix-ui/react-icons`, `@fortawesome/*`, `@phosphor-icons/react`, `@tabler/icons-react`
+- If no icon library found, ask user which to install or use inline SVGs
 
 ## Phase 2: Reconnaissance (Cheap Calls Only)
 
