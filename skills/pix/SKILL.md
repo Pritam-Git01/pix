@@ -118,9 +118,7 @@ Implement everything using what you memorized:
 
 **Frontend only.** Don't touch backend, API routes, or database unless the user explicitly asks. Use mock/placeholder data if APIs don't exist yet.
 
-**Zero screenshots during coding.** You know every pixel. Code in the dark.
-
-**Cheat move**: If you can't recall a specific detail, take ONE targeted `get_screenshot` on that Figma node. Surgical peek, not a second study phase.
+**Minimize screenshots during coding.** You studied the design — use what you memorized. But if you're missing crucial data for a specific element (exact icon shape, a nested layout you didn't drill into, a subtle gradient), take a targeted `get_screenshot` on that Figma node rather than guessing. Getting it right the first time is cheaper than a refinement round.
 
 ### Step 4: Design System Sync
 
